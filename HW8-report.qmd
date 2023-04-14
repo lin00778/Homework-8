@@ -1,0 +1,136 @@
+---
+title: "HW8-report"
+author: "Jiayu Lin"
+format: html
+editor: visual
+---
+
+## Quarto
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(flexdashboard)
+library(osmdata)
+library(tidyverse)
+library(ggmap)
+library(sf)
+library(ggthemes)
+library(plotly)
+library(scales)
+library(tidycensus)
+library(gt)
+library(leaflet)
+library(htmltools, quietly = TRUE)
+library(viridis, quietly = TRUE)
+library(lubridate)
+library(paletteer)
+library(ggridges)
+library(gtExtras)
+library(tigris)
+
+```
+
+### 1.4
+
+#### Please create 1 spatial visualization of regarding MN or Hennepin county which uses any of the methods covered in Lecture 11 including, but not limited to, sf, ggmap, tidycensus, osmdata, leaflet, etc. 
+
+\
+
+```{r warning=FALSE, error=FALSE, message=FALSE, include = FALSE}
+#Get the bounding box and county outline
+mn.box           <- osmdata::getbb("minnesota")
+hennepin.box     <- osmdata::getbb("hennepin")
+hennepin.outline <- osmdata::getbb("hennepin", format_out = "polygon")[[1]] %>%
+  as_tibble() %>%
+  rename(longitude = V1, latitude = V2)
+mn_base.map <- get_map(
+  location = hennepin.box,
+  source   = "stamen",
+  maptype  = "terrain",
+  crop = TRUE
+)
+
+#Get map from ggmap
+#Get the base map (foundational layer)
+hennepin_base.gg <- ggmap(mn_base.map) +
+  geom_polygon(data   = hennepin.outline, 
+               aes(x  = longitude, y = latitude), 
+               colour = "black", 
+               size   = 1.6, 
+               alpha  = 0.1) +
+  theme_map() +
+  theme(
+    plot.title   = element_text(size  = 10,
+                                hjust = 0.5),
+    legend.text  = element_text(size  = 10),
+    legend.title = element_text(size  = 10),
+    legend.position = "right"
+  )
+
+#Call the ACS API, returns a sf object
+mn_value.df <- get_acs(
+  geography = "tract",
+  variables = "B25077_001",  # median home value
+  state     = "MN",
+  county    = "Hennepin",
+  year      = 2020,
+  geometry  = TRUE,
+  cb        = FALSE
+)
+
+#Add a text label to mn_value.df
+mn_value_plotly.df <- mn_value.df %>%
+  mutate(
+    tract      = str_split(NAME, ",") %>%
+                 map_chr(1) %>%
+                 str_remove("Census Tract "),
+    text_label = str_c(
+                  "Tract: ",
+                  tract,
+                  "\nMedian home value: ",
+                  estimate,
+                  "USD"
+                 )
+  )
+
+# Check if the coordinate systems between the ggmap and geom_sf match
+coord_ggmap <- st_crs(hennepin_base.gg)   # NA
+coord_sf    <- st_crs(mn_value_plotly.df) # NAD83
+
+# Overlay thge sf info from tidycensus ACS income estimates
+mn_value.ggmap <- hennepin_base.gg +  
+  geom_sf(data = mn_value_plotly.df, 
+          aes(fill = estimate, text = text_label),
+          colour = "black", size = 0.1,
+          inherit.aes = FALSE) + 
+  labs(title = "Hennepin County 2020 ACS Median home value") + 
+  scale_fill_viridis_c("Median value of the home value in 2020") +
+  theme_map() +
+  theme(
+    plot.title      = element_text(size  = 10,
+                                hjust = 0.5),
+    legend.text     = element_text(size = 10),
+    legend.title    = element_text(size = 10),
+    legend.position = "right"
+  )
+
+# Display plotly
+mn_value.ggplotly<-ggplotly(mn_value.ggmap, 
+                            tooltip = "text", 
+                            height  = 600,
+                            width   = 800) %>%
+  style(hoveron = "fills")
+
+# Set replacement indices and values
+index <- c(3)
+replacement <- rep("skip", length = length(index))
+
+#For loop to replace index and info
+for (i in 1:length(index)) {
+  mn_value.ggplotly$x$data[[ index[i] ]]$hoverinfo <- replacement[i]
+}
+```
+
+``` {r warning=FALSE, error=FALSE, message=FALSE}
+mn_value.ggplotly
+```
