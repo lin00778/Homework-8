@@ -1,5 +1,6 @@
 on: [workflow_dispatch]
-name: Render HTML
+
+name: Render Report
 
 jobs:
   build-deploy:
@@ -24,16 +25,28 @@ jobs:
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
             packages:
-
-               any::tidycensus
-               any::plotly
-               any::sf
-               any::ggmap
+               any::flexdashboard
+               any::osmdata
                any::tidyverse
+               any::ggmap
+               any::sf
+               any::ggthemes
+               any::plotly
+               any::scales
+               any::tidycensus
+               any::gt
+               any::leaflet
+               any::htmltools
+               any::viridis
+               any::lubridate
+               any::paletteer
+               any::ggridges
+               any::gtExtras
+               any::tigris
       - name: Render document
         uses: quarto-dev/quarto-actions/render@v2
         env:
-          CENSUS_KEY: ${{ secrets.MAPS_API_KEY }}
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         with:
           to: html
           path: HW8-report.qmd
