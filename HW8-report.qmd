@@ -8,6 +8,9 @@ editor: visual
 ## Quarto
 
 ```{r setup, include=FALSE}
+#get API key
+api_key <- Sys.getenv("MAPS_API_KEY")
+
 knitr::opts_chunk$set(echo = TRUE)
 library(flexdashboard)
 library(osmdata)
