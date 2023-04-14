@@ -30,12 +30,13 @@ library(paletteer)
 library(ggridges)
 library(gtExtras)
 library(tigris)
+library(ggmap)
 
 ```
 
 ### 1.4
 
-#### Please create 1 spatial visualization of regarding MN or Hennepin county which uses any of the methods covered in Lecture 11 including, but not limited to, sf, ggmap, tidycensus, osmdata, leaflet, etc. 
+#### Please create 1 spatial visualization of regarding MN or Hennepin county which uses any of the methods covered in Lecture 11 including, but not limited to, sf, ggmap, tidycensus, osmdata, leaflet, etc.
 
 \
 
@@ -134,6 +135,6 @@ for (i in 1:length(index)) {
 }
 ```
 
-``` {r warning=FALSE, error=FALSE, message=FALSE}
+```{r warning=FALSE, error=FALSE, message=FALSE}
 mn_value.ggplotly
 ```
